@@ -12,9 +12,6 @@ odoo.define('pdf_report_options.report', function(require) {
     var _t = core._t;
     var _lt = core._lt;
 
-
-    var wkhtmltopdf_state;
-
     // Messages that will be shown to the user (if needed).
     var WKHTMLTOPDF_MESSAGES = {
         'install': _lt('Unable to find Wkhtmltopdf on this \nsystem. The report will be shown in html.<br><br><a href="http://wkhtmltopdf.org/" target="_blank">\nwkhtmltopdf.org</a>'),
@@ -23,142 +20,86 @@ odoo.define('pdf_report_options.report', function(require) {
         'broken': _lt('Your installation of Wkhtmltopdf seems to be broken. The report will be shown in html.<br><br><a href="http://wkhtmltopdf.org/" target="_blank">wkhtmltopdf.org</a>')
     };
 
-    var trigger_download = function(session, response, c, action, options) {
-        return session.get_file({
-            url: '/report/download',
-            data: { data: JSON.stringify(response) },
-            complete: framework.unblockUI,
-            error: c.rpc_error.bind(c),
-            success: function() {
-                if (action && options && !action.dialog) {
-                    options.on_close();
-                }
-            },
-        });
-    };
-
-    /**
-     * This helper will generate an object containing the report's url (as value)
-     * for every qweb-type we support (as key). It's convenient because we may want
-     * to use another report's type at some point (for example, when `qweb-pdf` is
-     * not available).
-     */
-    var make_report_url = function(action) {
-        var report_urls = {
-            'qweb-html': '/report/html/' + action.report_name,
-            'qweb-pdf': '/report/pdf/' + action.report_name,
-        };
-        // We may have to build a query string with `action.data`. It's the place
-        // were report's using a wizard to customize the output traditionally put
-        // their options.
-        if (_.isUndefined(action.data) || _.isNull(action.data) || (_.isObject(action.data) && _.isEmpty(action.data))) {
-            if (action.context.active_ids) {
-                var active_ids_path = '/' + action.context.active_ids.join(',');
-                // Update the report's type - report's url mapping.
-                report_urls = _.mapObject(report_urls, function(value, key) {
-                    return value += active_ids_path;
-                });
-            }
-        } else {
-            var serialized_options_path = '?options=' + encodeURIComponent(JSON.stringify(action.data));
-            serialized_options_path += '&context=' + encodeURIComponent(JSON.stringify(action.context));
-            // Update the report's type - report's url mapping.
-            report_urls = _.mapObject(report_urls, function(value, key) {
-                return value += serialized_options_path;
-            });
-        }
-        return report_urls;
-    };
-
     ActionManager.include({
-        ir_actions_report: function(action, options) {
+        _showDialogPdfOption: function(action, options) {
             var self = this;
-            action = _.clone(action);
-            var report_urls = make_report_url(action);
-            if (action.report_type === 'qweb-html') {
-                var client_action_options = _.extend({}, options, {
-                    report_url: report_urls['qweb-html'],
-                    report_name: action.report_name,
-                    report_file: action.report_file,
-                    data: action.data,
-                    context: action.context,
-                    name: action.name,
-                    display_name: action.display_name,
+            var btnClose = function() {
+                $('#frame-pdf').remove();
+                this.close();
+            }
+            var $dialog = new Dialog(self, {
+                title: _t("What do you want to do?"),
+                size: 'medium',
+                $content: QWeb.render('print_attachment_options.button_options'),
+                buttons: [{ text: _t('Close'), click: btnClose }]
+            }).open();
+            $dialog.opened().then(function() {
+                $dialog.$('.btn-pdf').on('click', function(e) {
+                    self.pdfReportOption = e.currentTarget.dataset.optionPdf;
+                    //trigger the download of the PDF report
+                    return self._triggerDownload(action, options, 'pdf');
                 });
-                return this.do_action('report.client_action', client_action_options);
+            });
+        },
+        _downloadReport: function(url) {
+            var self = this;
+            framework.blockUI();
+            var def = $.Deferred();
+            var type = 'qweb-' + url.split('/')[2];
+            var blocked = !session.get_file({
+                url: '/report/download',
+                data: {
+                    data: JSON.stringify([url, type, self.pdfReportOption]),
+                },
+                success: def.resolve.bind(def),
+                error: function() {
+                    crash_manager.rpc_error.apply(crash_manager, arguments);
+                    def.reject();
+                },
+                complete: framework.unblockUI,
+            });
+            if (blocked) {
+                // AAB: this check should be done in get_file service directly,
+                // should not be the concern of the caller (and that way, get_file
+                // could return a deferred)
+                var message = _t('A popup window with your report was blocked. You ' +
+                    'may need to change your browser settings to allow ' +
+                    'popup windows for this page.');
+                this.do_warn(_t('Warning'), message, true);
+            }
+            return def;
+        },
+        _executeReportAction: function(action, options) {
+            var self = this;
+
+            if (action.report_type === 'qweb-html') {
+                return this._executeReportClientAction(action, options);
             } else if (action.report_type === 'qweb-pdf') {
-                //framework.blockUI();
-                // Before doing anything, we check the state of wkhtmltopdf on the server.
-                (wkhtmltopdf_state = wkhtmltopdf_state || session.rpc('/report/check_wkhtmltopdf')).then(function(state) {
-                    // Display a notification to the user according to wkhtmltopdf's state.
-                    if (WKHTMLTOPDF_MESSAGES[state]) {
+                // check the state of wkhtmltopdf before proceeding
+                return this.call('report', 'checkWkhtmltopdf').then(function(state) {
+                    // display a notification according to wkhtmltopdf's state
+                    if (state in WKHTMLTOPDF_MESSAGES) {
                         self.do_notify(_t('Report'), WKHTMLTOPDF_MESSAGES[state], true);
                     }
                     if (state === 'upgrade' || state === 'ok') {
-                        var btnClose = function destroyFrame() {
-                            $('#frame-pdf').remove();
-                            this.close();
-                        }
-                        var pdfReportAction = function(optionPdf) {
-                            // Trigger the download of the PDF report.
-                            var response;
-                            var c = crash_manager;
-                            var treated_actions = [];
-                            var current_action = action;
-                            $('#frame-pdf').remove();
-                            framework.blockUI();
-                            do {
-                                report_urls = make_report_url(current_action);
-                                response = [
-                                    report_urls['qweb-pdf'],
-                                    action.report_type, //The 'root' report is considered the maine one, so we use its type for all the others.
-                                    optionPdf,
-                                ];
-                                var success = trigger_download(self.getSession(), response, c, current_action, options);
-                                if (!success) {
-                                    self.do_warn(_t('Warning'), _t('A popup window with your report was blocked.  You may need to change your browser settings to allow popup windows for this page.'), true);
-                                }
-
-                                treated_actions.push(current_action);
-                                current_action = current_action.next_report_to_generate;
-                            } while (current_action && !_.contains(treated_actions, current_action));
-                            //Second part of the condition for security reasons (avoids infinite loop possibilty).
-                        }
-                        if (!action.default_print_option) {
-                            var $dialog = new Dialog(self, {
-                                title: _t("What do you want to do?"),
-                                size: 'medium',
-                                $content: QWeb.render('print_attachment_options.button_options'),
-                                buttons: [{ text: _t('Close'), click: btnClose }]
-                            }).open();
-                            $dialog.opened().then(function() {
-                                $dialog.$('.btn-pdf').on('click', function(e) {
-                                    return pdfReportAction(e.currentTarget.dataset.optionPdf);
-                                });
-                            });
+                        if (action.default_print_option) {
+                            self.pdfReportOption = action.default_print_option;
+                            return self._triggerDownload(action, options, 'pdf');
                         } else {
-                            return pdfReportAction(action.default_print_option)
+                            return self._showDialogPdfOption(action, options);
                         }
                     } else {
-                        // Open the report in the client action if generating the PDF is not possible.
-                        var client_action_options = _.extend({}, options, {
-                            report_url: report_urls['qweb-html'],
-                            report_name: action.report_name,
-                            report_file: action.report_file,
-                            data: action.data,
-                            context: action.context,
-                            name: action.name,
-                            display_name: action.display_name,
-                        });
-                        framework.unblockUI();
-                        return self.do_action('report.client_action', client_action_options);
+                        // open the report in the client action if generating the PDF is not possible
+                        return self._executeReportClientAction(action, options);
                     }
                 });
+            } else if (action.report_type === 'qweb-text') {
+                return self._triggerDownload(action, options, 'text');
             } else {
-                self.do_warn(_t('Error'), _t('Non qweb reports are not anymore supported.'), true);
-                return;
+                console.error("The ActionManager can't handle reports of type " +
+                    action.report_type, action);
+                return $.Deferred().reject();
             }
         }
     });
-
 });

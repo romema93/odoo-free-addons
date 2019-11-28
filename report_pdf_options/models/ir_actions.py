@@ -4,7 +4,7 @@ from odoo import fields, models
 
 
 class IrActionsReportXml(models.Model):
-    _inherit = 'ir.actions.report.xml'
+    _inherit = 'ir.actions.report'
 
     default_print_option = fields.Selection(selection=[
         ('print', 'Print'),

@@ -1,4 +1,4 @@
-odoo.define('report_pdf_options.report', function(require) {
+odoo.define('pdf_report_options.report', function(require) {
     'use strict';
 
     var ActionManager = require('web.ActionManager');
@@ -24,7 +24,7 @@ odoo.define('report_pdf_options.report', function(require) {
     };
 
     var trigger_download = function(session, response, c, action, options) {
-        session.get_file({
+        return session.get_file({
             url: '/report/download',
             data: { data: JSON.stringify(response) },
             complete: framework.unblockUI,
@@ -47,7 +47,6 @@ odoo.define('report_pdf_options.report', function(require) {
         var report_urls = {
             'qweb-html': '/report/html/' + action.report_name,
             'qweb-pdf': '/report/pdf/' + action.report_name,
-            'controller': action.report_file,
         };
         // We may have to build a query string with `action.data`. It's the place
         // were report's using a wizard to customize the output traditionally put
@@ -72,7 +71,7 @@ odoo.define('report_pdf_options.report', function(require) {
     };
 
     ActionManager.include({
-        ir_actions_report_xml: function(action, options) {
+        ir_actions_report: function(action, options) {
             var self = this;
             action = _.clone(action);
             var report_urls = make_report_url(action);
@@ -101,16 +100,29 @@ odoo.define('report_pdf_options.report', function(require) {
                             this.close();
                         }
                         var pdfReportAction = function(optionPdf) {
+                            // Trigger the download of the PDF report.
+                            var response;
+                            var c = crash_manager;
+                            var treated_actions = [];
+                            var current_action = action;
                             $('#frame-pdf').remove();
                             framework.blockUI();
-                            // Trigger the download of the PDF report.
-                            var response = [
-                                report_urls['qweb-pdf'],
-                                action.report_type,
-                                optionPdf
-                            ];
-                            var c = crash_manager;
-                            return trigger_download(self.session, response, c, action, options);
+                            do {
+                                report_urls = make_report_url(current_action);
+                                response = [
+                                    report_urls['qweb-pdf'],
+                                    action.report_type, //The 'root' report is considered the maine one, so we use its type for all the others.
+                                    optionPdf,
+                                ];
+                                var success = trigger_download(self.getSession(), response, c, current_action, options);
+                                if (!success) {
+                                    self.do_warn(_t('Warning'), _t('A popup window with your report was blocked.  You may need to change your browser settings to allow popup windows for this page.'), true);
+                                }
+
+                                treated_actions.push(current_action);
+                                current_action = current_action.next_report_to_generate;
+                            } while (current_action && !_.contains(treated_actions, current_action));
+                            //Second part of the condition for security reasons (avoids infinite loop possibilty).
                         }
                         if (!action.default_print_option) {
                             var $dialog = new Dialog(self, {
@@ -119,8 +131,10 @@ odoo.define('report_pdf_options.report', function(require) {
                                 $content: QWeb.render('print_attachment_options.button_options'),
                                 buttons: [{ text: _t('Close'), click: btnClose }]
                             }).open();
-                            $dialog.$('.btn-pdf').on('click', function(e) {
-                                return pdfReportAction(e.currentTarget.dataset.optionPdf);
+                            $dialog.opened().then(function() {
+                                $dialog.$('.btn-pdf').on('click', function(e) {
+                                    return pdfReportAction(e.currentTarget.dataset.optionPdf);
+                                });
                             });
                         } else {
                             return pdfReportAction(action.default_print_option)
@@ -140,16 +154,9 @@ odoo.define('report_pdf_options.report', function(require) {
                         return self.do_action('report.client_action', client_action_options);
                     }
                 });
-            } else if (action.report_type === 'controller') {
-                framework.blockUI();
-                var response = [
-                    report_urls.controller,
-                    action.report_type,
-                ];
-                var c = crash_manager;
-                return trigger_download(self.session, response, c, action, options);
             } else {
-                return self._super(action, options);
+                self.do_warn(_t('Error'), _t('Non qweb reports are not anymore supported.'), true);
+                return;
             }
         }
     });

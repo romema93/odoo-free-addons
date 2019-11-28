@@ -12,7 +12,7 @@
     'author': 'Luis Rodrigo Mejia Mateus',
     'category': 'Productivity',
     'images': ['images/main_1.png', 'images/main_screenshot.png'],
-    'depends': ['report'],
+    'depends': ['web'],
     'data': [
         'views/templates.xml',
         'views/ir_actions_report.xml',

@@ -1,4 +1,4 @@
-odoo.define('report_pdf_options.PdfOptions', function (require) {
+odoo.define('pdf_report_options.PdfOptions', function (require) {
   "use strict";
 
   var Session = require('web.Session');

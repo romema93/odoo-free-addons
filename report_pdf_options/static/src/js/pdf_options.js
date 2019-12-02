@@ -28,6 +28,7 @@ odoo.define('pdf_report_options.PdfOptions', function (require) {
           return true;
         }
         else if (pdfPrint !== -1) {
+            $('#frame-pdf').remove();
           $('<iframe style="display: none;">')
             .attr({ id: 'frame-pdf', src: url, name: 'frame-pdf' })
             .appendTo(document.body)

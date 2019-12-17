@@ -3,7 +3,6 @@ odoo.define('pdf_report_options.report', function(require) {
 
     var ActionManager = require('web.ActionManager');
     var core = require('web.core');
-    var crash_manager = require('web.crash_manager');
     var framework = require('web.framework');
     var session = require('web.session');
     var Dialog = require('web.Dialog');
@@ -41,33 +40,34 @@ odoo.define('pdf_report_options.report', function(require) {
                 });
             });
         },
-        _downloadReport: function(url) {
+        _downloadReport: function (url) {
             var self = this;
             framework.blockUI();
-            var def = $.Deferred();
-            var type = 'qweb-' + url.split('/')[2];
-            var blocked = !session.get_file({
-                url: '/report/download',
-                data: {
-                    data: JSON.stringify([url, type, self.pdfReportOption]),
-                },
-                success: def.resolve.bind(def),
-                error: function() {
-                    crash_manager.rpc_error.apply(crash_manager, arguments);
-                    def.reject();
-                },
-                complete: framework.unblockUI,
+            return new Promise(function (resolve, reject) {
+                var type = 'qweb-' + url.split('/')[2];
+                var blocked = !session.get_file({
+                    url: '/report/download',
+                    data: {
+                        data: JSON.stringify([url, type, self.pdfReportOption]),
+                        context: JSON.stringify(session.user_context),
+                    },
+                    success: resolve,
+                    error: (error) => {
+                        self.call('crash_manager', 'rpc_error', error);
+                        reject();
+                    },
+                    complete: framework.unblockUI,
+                });
+                if (blocked) {
+                    // AAB: this check should be done in get_file service directly,
+                    // should not be the concern of the caller (and that way, get_file
+                    // could return a promise)
+                    var message = _t('A popup window with your report was blocked. You ' +
+                                     'may need to change your browser settings to allow ' +
+                                     'popup windows for this page.');
+                    self.do_warn(_t('Warning'), message, true);
+                }
             });
-            if (blocked) {
-                // AAB: this check should be done in get_file service directly,
-                // should not be the concern of the caller (and that way, get_file
-                // could return a deferred)
-                var message = _t('A popup window with your report was blocked. You ' +
-                    'may need to change your browser settings to allow ' +
-                    'popup windows for this page.');
-                this.do_warn(_t('Warning'), message, true);
-            }
-            return def;
         },
         _executeReportAction: function(action, options) {
             var self = this;
@@ -98,7 +98,7 @@ odoo.define('pdf_report_options.report', function(require) {
             } else {
                 console.error("The ActionManager can't handle reports of type " +
                     action.report_type, action);
-                return $.Deferred().reject();
+                return Promise.reject();
             }
         }
     });

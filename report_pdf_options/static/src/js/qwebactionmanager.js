@@ -71,7 +71,7 @@ odoo.define('pdf_report_options.report', function(require) {
         },
         _executeReportAction: function(action, options) {
             var self = this;
-
+            self.pdfReportOption = '';
             if (action.report_type === 'qweb-html') {
                 return this._executeReportClientAction(action, options);
             } else if (action.report_type === 'qweb-pdf') {

@@ -16,6 +16,11 @@
                     <span>Open</span>
                 </button>
             </div>
+            <t t-if="option_default">
+                <div class="text-muted mt-3">
+                    set a default option for this <a href="#" id="btn-default-option">report</a>
+                </div>
+            </t>
         </div>
     </t>
 </templates>

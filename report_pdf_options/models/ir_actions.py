@@ -11,3 +11,14 @@ class IrActionsReportXml(models.Model):
         ('download', 'Download'),
         ('open', 'Open')
     ], string='Default printing option')
+
+    def _get_readable_fields(self):
+        data = super()._get_readable_fields()
+        data.add('default_print_option')
+        return data
+
+    def report_action(self, docids, data=None, config=True):
+        data = super(IrActionsReportXml, self).report_action(docids, data, config)
+        data['id'] = self.id
+        data['default_print_option'] = self.default_print_option
+        return data

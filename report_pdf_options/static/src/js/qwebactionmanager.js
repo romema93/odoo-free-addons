@@ -54,13 +54,20 @@ registry
         if (report_type !== "qweb-pdf" || default_print_option === "download")
             return false;
         if (!default_print_option) {
+            let removeDialog;
             default_print_option = await new Promise(resolve => {
-                env.services.dialog.add(PdfOptionsModal, {
+                removeDialog = env.services.dialog.add(PdfOptionsModal, {
+                    onClose: () => {
+                        return resolve("close");
+                    },
                     onSelectOption: (option) => {
                         return resolve(option);
                     }
                 });
             });
+            removeDialog();
+            if (default_print_option === "close")
+                return true;
             if (default_print_option === "download")
                 return false;
         }

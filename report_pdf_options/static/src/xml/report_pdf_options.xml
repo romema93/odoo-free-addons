@@ -1,26 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <templates xml:space="preserve">
-    <t t-name="print_attachment_options.button_options">
+    <t t-name="report_pdf_options.ButtonOptions" owl="1">
         <div style="text-align:center;">
             <div class="btn-group" role="group">
-                <button id="btn-pdf-print" class="btn btn-info btn-pdf" data-option-pdf="print">
+                <button class="btn btn-info" t-on-click="executePdfAction('print')">
                     <i class="fa fa-print"/>
                     <span>Print</span>
                 </button>
-                <button id="btn-pdf-download" class="btn btn-info btn-pdf" data-option-pdf="download">
+                <button class="btn btn-info" t-on-click="executePdfAction('download')">
                     <i class="fa fa-download"/>
                     <span>Download</span>
                 </button>
-                <button id="btn-pdf-open" class="btn btn-info btn-pdf" data-option-pdf="open">
+                <button class="btn btn-info" t-on-click="executePdfAction('open')">
                     <i class="fa fa-file-text"/>
                     <span>Open</span>
                 </button>
             </div>
-            <t t-if="option_default">
+            <!-- <t t-if="option_default">
                 <div class="text-muted mt-3">
                     set a default option for this <a href="#" id="btn-default-option">report</a>
                 </div>
-            </t>
+            </t> -->
         </div>
     </t>
 </templates>

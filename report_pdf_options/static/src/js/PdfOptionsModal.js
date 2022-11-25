@@ -2,18 +2,13 @@
 
 import { _lt } from "@web/core/l10n/translation";
 import { Dialog } from "@web/core/dialog/dialog";
+import { Component } from "@odoo/owl";
 
-
-export class PdfOptionsModal extends Dialog {
+export class PdfOptionsModal extends Component {
     executePdfAction(option) {
         this.props.onSelectOption(option);
     }
-    close() {
-        this.props.onClose();
-        super.close();
-    }
 }
 
-PdfOptionsModal.size = "model-sm";
-PdfOptionsModal.title = _lt("What do you want to do?");
-PdfOptionsModal.bodyTemplate = "report_pdf_options.ButtonOptions";
+PdfOptionsModal.template = "report_pdf_options.ButtonOptions";
+PdfOptionsModal.components = { Dialog };

@@ -56,14 +56,19 @@ registry
         if (!default_print_option) {
             let removeDialog;
             default_print_option = await new Promise(resolve => {
-                removeDialog = env.services.dialog.add(PdfOptionsModal, {
-                    onClose: () => {
-                        return resolve("close");
+                removeDialog = env.services.dialog.add(
+                    PdfOptionsModal,
+                    {
+                        onSelectOption: (option) => {
+                            return resolve(option);
+                        }
                     },
-                    onSelectOption: (option) => {
-                        return resolve(option);
+                    {
+                        onClose: () => {
+                            resolve("close");
+                        }
                     }
-                });
+                );
             });
             removeDialog();
             if (default_print_option === "close")

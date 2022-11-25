@@ -20,12 +20,10 @@
     'auto_install': False,
     'license': 'LGPL-3',
     'assets': {
-        'web.assets_qweb': [
-            'report_pdf_options/static/src/**/*.xml',
-        ],
         'web.assets_backend': [
             'report_pdf_options/static/src/js/PdfOptionsModal.js',
             'report_pdf_options/static/src/js/qwebactionmanager.js',
+            'report_pdf_options/static/src/**/*.xml'
         ]
     }
 }

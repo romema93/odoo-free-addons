@@ -57,11 +57,12 @@ registry
             let removeDialog;
             default_print_option = await new Promise(resolve => {
                 removeDialog = env.services.dialog.add(PdfOptionsModal, {
-                    onClose: () => {
-                        return resolve("close");
-                    },
                     onSelectOption: (option) => {
                         return resolve(option);
+                    }
+                }, {
+                    onClose: () => {
+                        return resolve('close');
                     }
                 });
             });

@@ -3,17 +3,10 @@
 import { _lt } from "@web/core/l10n/translation";
 import { Dialog } from "@web/core/dialog/dialog";
 
+const { Component } = owl;
 
-export class PdfOptionsModal extends Dialog {
-    executePdfAction(option) {
-        this.props.onSelectOption(option);
-    }
-    close() {
-        this.props.onClose();
-        super.close();
-    }
+export class PdfOptionsModal extends Component {
 }
 
-PdfOptionsModal.size = "model-sm";
-PdfOptionsModal.title = _lt("What do you want to do?");
-PdfOptionsModal.bodyTemplate = "report_pdf_options.ButtonOptions";
+PdfOptionsModal.components = { Dialog }
+PdfOptionsModal.template = "report_pdf_options.ButtonOptions";

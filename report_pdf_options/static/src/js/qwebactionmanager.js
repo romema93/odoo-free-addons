@@ -1,7 +1,29 @@
 /** @odoo-module **/
 
+import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
 import { PdfOptionsModal } from "./PdfOptionsModal";
+
+function getWKHTMLTOPDF_MESSAGES(status) {
+    const link = '<br><br><a href="http://wkhtmltopdf.org/" target="_blank">wkhtmltopdf.org</a>'; // FIXME missing markup
+    const _status = {
+        broken:
+            _t(
+                "Your installation of Wkhtmltopdf seems to be broken. The report will be shown in html."
+            ) + link,
+        install:
+            _t("Unable to find Wkhtmltopdf on this system. The report will be shown in html.") +
+            link,
+        upgrade:
+            _t(
+                "You should upgrade your version of Wkhtmltopdf to at least 0.12.0 in order to get a correct display of headers and footers as well as support for table-breaking between pages."
+            ) + link,
+        workers: _t(
+            "You need to start Odoo with at least two workers to print a pdf version of the reports."
+        ),
+    };
+    return _status[status];
+}
 
 let iframeForReport;
 
@@ -76,41 +98,21 @@ registry
             if (default_print_option === "download")
                 return false;
         }
-        const link = '<br><br><a href="http://wkhtmltopdf.org/" target="_blank">wkhtmltopdf.org</a>';
-        const WKHTMLTOPDF_MESSAGES = {
-            broken:
-                env._t(
-                    "Your installation of Wkhtmltopdf seems to be broken. The report will be shown " +
-                    "in html."
-                ) + link,
-            install:
-                env._t(
-                    "Unable to find Wkhtmltopdf on this system. The report will be shown in " + "html."
-                ) + link,
-            upgrade:
-                env._t(
-                    "You should upgrade your version of Wkhtmltopdf to at least 0.12.0 in order to " +
-                    "get a correct display of headers and footers as well as support for " +
-                    "table-breaking between pages."
-                ) + link,
-            workers: env._t(
-                "You need to start Odoo with at least two workers to print a pdf version of " +
-                "the reports."
-            ),
-        };
+
         // check the state of wkhtmltopdf before proceeding
         if (!wkhtmltopdfStateProm) {
-            wkhtmltopdfStateProm = env.services.rpc("/report/check_wkhtmltopdf");
+            wkhtmltopdfStateProm = await env.services.rpc("/report/check_wkhtmltopdf");
         }
-        const state = await wkhtmltopdfStateProm;
+        const state = wkhtmltopdfStateProm;
         // display a notification according to wkhtmltopdf's state
-        if (state in WKHTMLTOPDF_MESSAGES) {
-            env.services.notification.add(WKHTMLTOPDF_MESSAGES[state], {
+        const message = getWKHTMLTOPDF_MESSAGES(state)
+        if (message) {
+            env.services.notification.add(message, {
                 sticky: true,
-                title: env._t("Report"),
+                title: _t("Report"),
             });
         }
-        if (state === "upgrade" || state === "ok") {
+        if (["upgrade", "ok"].includes(state)) {
             // trigger the download of the PDF report
             //return _triggerDownload(action, options, "pdf");
             const url = getReportUrl(action, "pdf");

@@ -3,6 +3,7 @@
 import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
 import { PdfOptionsModal } from "./PdfOptionsModal";
+import { rpc } from "@web/core/network/rpc";
 
 function getWKHTMLTOPDF_MESSAGES(status) {
     const link = '<br><br><a href="http://wkhtmltopdf.org/" target="_blank">wkhtmltopdf.org</a>'; // FIXME missing markup
@@ -101,7 +102,7 @@ registry
 
         // check the state of wkhtmltopdf before proceeding
         if (!wkhtmltopdfStateProm) {
-            wkhtmltopdfStateProm = await env.services.rpc("/report/check_wkhtmltopdf");
+            wkhtmltopdfStateProm = await rpc("/report/check_wkhtmltopdf");
         }
         const state = wkhtmltopdfStateProm;
         // display a notification according to wkhtmltopdf's state

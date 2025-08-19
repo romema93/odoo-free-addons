@@ -1,41 +1,656 @@
-<section class="oe_container">
-    <div class="oe_row oe_spaced">
-        <div class="oe_span12">
-            <h2 class="oe_slogan">Report Print Options</h2>
-            <h3 class="oe_slogan">Report direct print, download or open in new tab</h3>
-        </div>
-        <div class="oe_span12">
-            <div class="oe_demo oe_pictue oe_screenshot">
-                <img src="printoptions.gif">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Report Options - Odoo Module</title>
+    <style>
+        :root {
+            --primary-color: #714B67;
+            --secondary-color: #8E6F7C;
+            --accent-color: #17a2b8;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --text-primary: #2c3e50;
+            --text-secondary: #6c757d;
+            --gradient-primary: linear-gradient(135deg, #714B67 0%, #8E6F7C 100%);
+            --gradient-secondary: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            --border-radius: 12px;
+            --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: #ffffff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: var(--gradient-primary);
+            color: white;
+            padding: 80px 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/><circle cx="20" cy="80" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .hero .subtitle {
+            font-size: 1.3rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .version-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 8px 20px;
+            border-radius: 50px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* Feature Cards */
+        .features {
+            padding: 80px 0;
+            background: var(--light-color);
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-title h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        .section-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 40px 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            text-align: center;
+            transition: var(--transition);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 25px;
+            background: var(--gradient-secondary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* Demo Gallery */
+        .demo-gallery {
+            padding: 80px 0;
+            background: white;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 40px;
+            margin-top: 40px;
+        }
+
+        .demo-item {
+            background: var(--light-color);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+        }
+
+        .demo-item:hover {
+            transform: scale(1.02);
+        }
+
+        .demo-image {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .demo-content {
+            padding: 25px;
+        }
+
+        .demo-content h4 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .demo-content p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Benefits Section */
+        .benefits {
+            padding: 80px 0;
+            background: var(--gradient-primary);
+            color: white;
+        }
+
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-top: 40px;
+        }
+
+        .benefit-item {
+            text-align: center;
+        }
+
+        .benefit-item .icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .benefit-item h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .benefit-item p {
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        /* Technical Details */
+        .technical {
+            padding: 80px 0;
+            background: white;
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-top: 40px;
+        }
+
+        .tech-card {
+            background: var(--light-color);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .tech-card h4 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        .tech-list {
+            list-style: none;
+        }
+
+        .tech-list li {
+            padding: 5px 0;
+            color: var(--text-secondary);
+        }
+
+        .tech-list li::before {
+            content: '✓';
+            color: var(--success-color);
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        /* Installation Guide */
+        .installation {
+            padding: 80px 0;
+            background: var(--light-color);
+        }
+
+        .install-steps {
+            margin-top: 40px;
+        }
+
+        .step {
+            background: white;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            box-shadow: var(--box-shadow);
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+        }
+
+        .step-number {
+            background: var(--gradient-secondary);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .step-content h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .step-content p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Author Section */
+        .author {
+            padding: 60px 0;
+            background: var(--dark-color);
+            color: white;
+            text-align: center;
+        }
+
+        .author-content {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .author h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+
+        .author p {
+            opacity: 0.9;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero .subtitle {
+                font-size: 1.1rem;
+            }
+
+            .section-title h2 {
+                font-size: 2rem;
+            }
+
+            .feature-grid,
+            .gallery-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 0 15px;
+            }
+
+            .feature-card,
+            .demo-item {
+                margin-bottom: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero {
+                padding: 60px 0;
+            }
+
+            .features,
+            .demo-gallery,
+            .benefits,
+            .technical,
+            .installation {
+                padding: 60px 0;
+            }
+
+            .gallery-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .step {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="version-badge">Odoo 18 Compatible</div>
+                <h1>PDF Report Options</h1>
+                <p class="subtitle">
+                    Enhance your Odoo experience with flexible PDF report handling. 
+                    Choose to print directly, download, or open reports in new tabs with customizable default settings.
+                </p>
             </div>
-            <div class="oe_demo oe_pictue oe_screenshot">
-                <img src="printoptions2.gif">
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="container">
+            <div class="section-title">
+                <h2>Powerful Features</h2>
+                <p class="section-subtitle">
+                    Transform how your users interact with PDF reports in Odoo with these innovative features
+                </p>
+            </div>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🖨️</div>
+                    <h3>Direct Printing</h3>
+                    <p>Print PDF reports directly from your browser without additional steps. Streamline your workflow with instant printing capabilities that save time and improve productivity.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">⬇️</div>
+                    <h3>Smart Downloads</h3>
+                    <p>Download PDF reports directly to your computer with a single click. Perfect for archiving, sharing, or offline access to important business documents.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🔗</div>
+                    <h3>New Tab Preview</h3>
+                    <p>Open PDF reports in new browser tabs for quick preview and review. Ideal for comparing documents or referencing information while working in Odoo.</p>
+                </div>
             </div>
         </div>
-    </div>
-</section>
-<section class="oe_container oe_dark">
-    <div class="oe_row oe_spaced">
-        <div class="oe_span12">
-            <h2 class="oe_slogan">Report Print Configuration</h2>
-            <h3 class="oe_slogan">Set an option to perform by default</h3>
-        </div>
-        <div class="oe_span12">
-            <div class="oe_demo oe_pictue oe_screenshot">
-                <img src="setupoptions.gif">
+    </section>
+
+    <!-- Demo Gallery -->
+    <section class="demo-gallery">
+        <div class="container">
+            <div class="section-title">
+                <h2>See It In Action</h2>
+                <p class="section-subtitle">
+                    Experience the intuitive modal interface and seamless configuration options
+                </p>
+            </div>
+            
+            <div class="gallery-grid">
+                <div class="demo-item">
+                    <img src="printoptions.gif" alt="Print Options Modal" class="demo-image">
+                    <div class="demo-content">
+                        <h4>Interactive Options Modal</h4>
+                        <p>Users can choose from three convenient options when generating any PDF report in Odoo.</p>
+                    </div>
+                </div>
+                
+                <div class="demo-item">
+                    <img src="printoptions2.gif" alt="Multiple Print Options" class="demo-image">
+                    <div class="demo-content">
+                        <h4>Flexible Report Handling</h4>
+                        <p>Seamless integration with all Odoo report types, maintaining consistency across your workflow.</p>
+                    </div>
+                </div>
+                
+                <div class="demo-item">
+                    <img src="setupoptions.gif" alt="Configuration Settings" class="demo-image">
+                    <div class="demo-content">
+                        <h4>Easy Configuration</h4>
+                        <p>Set default behaviors for each report type through Odoo's intuitive settings interface.</p>
+                    </div>
+                </div>
+                
+                <div class="demo-item">
+                    <img src="defaultoption.gif" alt="Default Options in Action" class="demo-image">
+                    <div class="demo-content">
+                        <h4>Smart Defaults</h4>
+                        <p>Once configured, default options are executed automatically, streamlining repetitive tasks.</p>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</section>
-<section class="oe_container">
-    <div class="oe_row oe_spaced">
-        <div class="oe_span12">
-            <h2 class="oe_slogan">The default option is executed</h2>
-        </div>
-        <div class="oe_span12">
-            <div class="oe_demo oe_pictue oe_screenshot">
-                <img src="defaultoption.gif">
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="benefits">
+        <div class="container">
+            <div class="section-title">
+                <h2 style="color: white;">Why Choose PDF Report Options?</h2>
+                <p class="section-subtitle" style="color: rgba(255, 255, 255, 0.9);">
+                    Enhance productivity and user experience with these key benefits
+                </p>
+            </div>
+            
+            <div class="benefits-grid">
+                <div class="benefit-item">
+                    <div class="icon">⚡</div>
+                    <h4>Improved Efficiency</h4>
+                    <p>Reduce clicks and waiting time with direct actions and customizable defaults.</p>
+                </div>
+                
+                <div class="benefit-item">
+                    <div class="icon">👥</div>
+                    <h4>Better User Experience</h4>
+                    <p>Intuitive interface that adapts to user preferences and workflow requirements.</p>
+                </div>
+                
+                <div class="benefit-item">
+                    <div class="icon">🔧</div>
+                    <h4>Easy Configuration</h4>
+                    <p>Simple setup process with granular control over each report type's behavior.</p>
+                </div>
+                
+                <div class="benefit-item">
+                    <div class="icon">📊</div>
+                    <h4>Universal Compatibility</h4>
+                    <p>Works with all Odoo PDF reports across all modules and custom reports.</p>
+                </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
+
+    <!-- Technical Details -->
+    <section class="technical">
+        <div class="container">
+            <div class="section-title">
+                <h2>Technical Specifications</h2>
+                <p class="section-subtitle">
+                    Built with modern web technologies and best practices for optimal performance
+                </p>
+            </div>
+            
+            <div class="tech-grid">
+                <div class="tech-card">
+                    <h4>Compatibility</h4>
+                    <ul class="tech-list">
+                        <li>Odoo 18.0 Community & Enterprise</li>
+                        <li>All modern browsers</li>
+                        <li>Multi-language support (EN, ES)</li>
+                    </ul>
+                </div>
+                
+                <div class="tech-card">
+                    <h4>Dependencies</h4>
+                    <ul class="tech-list">
+                        <li>Base Odoo 'web' module</li>
+                        <li>No external libraries required</li>
+                        <li>Lightweight JavaScript implementation</li>
+                    </ul>
+                </div>
+                
+                <div class="tech-card">
+                    <h4>Features</h4>
+                    <ul class="tech-list">
+                        <li>Modal-based interface</li>
+                        <li>Configurable default actions</li>
+                        <li>Report-specific settings</li>
+                        <li>Seamless Odoo integration</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Installation Guide -->
+    <section class="installation">
+        <div class="container">
+            <div class="section-title">
+                <h2>Installation Guide</h2>
+                <p class="section-subtitle">
+                    Get started in minutes with these simple installation steps
+                </p>
+            </div>
+            
+            <div class="install-steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>Download the Module</h4>
+                        <p>Download the PDF Report Options module from the Odoo App Store or install directly from your Odoo Apps menu.</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>Install the Module</h4>
+                        <p>Navigate to Apps in your Odoo instance, search for "PDF Report Options", and click Install. The module will be automatically configured.</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>Configure Defaults (Optional)</h4>
+                        <p>Go to Settings → Technical → Reports to configure default behaviors for specific report types according to your preferences.</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h4>Start Using</h4>
+                        <p>Generate any PDF report in Odoo and enjoy the new options modal with print, download, and open capabilities.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Author Section -->
+    <section class="author">
+        <div class="container">
+            <div class="author-content">
+                <h3>Developed by Luis Rodrigo Mejia Mateus</h3>
+                <p>
+                    A productivity-focused Odoo module designed to enhance user experience and streamline report workflows. 
+                    Built with attention to detail and modern development practices.
+                </p>
+            </div>
+        </div>
+    </section>
+</body>
+</html>
